@@ -1,19 +1,20 @@
 package com.example.usermicroservice.controllers;
 
-import com.example.usermicroservice.dto.SignUpUserRequest;
-import com.example.usermicroservice.dto.UserInfoResponse;
-import com.example.usermicroservice.dto.ValidateUserRequest;
-import com.example.usermicroservice.dto.ValidateUserResponse;
+import com.example.usermicroservice.dto.*;
 import com.example.usermicroservice.services.UserService;
+import com.example.usermicroservice.swagger.UserControllerSwagger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+
 @RestController
-public class UserController {
+public class UserController implements UserControllerSwagger {
 
     private final Logger logger;
     private final UserService userService;
@@ -28,8 +29,15 @@ public class UserController {
             @RequestBody SignUpUserRequest userData
     ) {
         logger.info("Processing user sign up request! Data: " + userData.toString());
-        userService.signUpUser(userData);
-        return ResponseEntity.ok().body("User has been successfully registered!");
+        int userId = userService.signUpUser(userData);
+
+        // Constructing the response by adding a link to information retrieval for the newly created user.
+        EntityModel<SignUpUserResponse> response = EntityModel.of(
+                new SignUpUserResponse("User has been successfully registered!"),
+                linkTo(methodOn(UserController.class).signUpUser(userData)).withSelfRel(),
+                linkTo(methodOn(UserController.class).getUserInfo(userId)).withRel("getUserInfo")
+        );
+        return ResponseEntity.ok().body(response);
     }
 
     @GetMapping("/isvalid")
@@ -49,7 +57,7 @@ public class UserController {
     }
 
     @GetMapping("/get/{id}")
-    public ResponseEntity<UserInfoResponse> getUserInfo(
+    public ResponseEntity<?> getUserInfo(
             @PathVariable("id") int userId
     ) {
         logger.info("Processing user data retrieval request!");

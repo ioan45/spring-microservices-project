@@ -31,7 +31,7 @@ public class PostService {
         this.userClient = userClient;
     }
 
-    public void createPost(NewPostRequest postDto) {
+    public int createPost(NewPostRequest postDto) {
         ValidateUserResponse validation = this.validateUser(postDto.getUsername(), postDto.getPassword());
         if (!validation.isValid())
             throw new RuntimeException("Post creation failed! There is no user with the given credentials.");
@@ -39,10 +39,10 @@ public class PostService {
         Post newPost = postDtoMapper.fromNewPostRequest(postDto);
         newPost.setTimestamp(new Timestamp(System.currentTimeMillis()));
         newPost.setUserId(validation.getUserId());
-        postRepository.save(newPost);
+        return postRepository.save(newPost).getPostId();
     }
 
-    public void createComment(NewCommentRequest commentDto) {
+    public int createComment(NewCommentRequest commentDto) {
         Post post = postRepository.findById(commentDto.getPostId()).orElse(null);
         if (post == null)
             throw new RuntimeException("Comment creation failed! The specified post doesn't exist.");
@@ -56,6 +56,7 @@ public class PostService {
         newComment.setPost(post);
         newComment.setUserId(validation.getUserId());
         commentRepository.save(newComment);
+        return post.getPostId();
     }
 
     @Transactional

@@ -18,14 +18,14 @@ public class UserService {
         this.userDtoMapper = userDtoMapper;
     }
 
-    public void signUpUser(SignUpUserRequest userDto) {
+    public int signUpUser(SignUpUserRequest userDto) {
         User user = userDtoMapper.fromSignUpRequest(userDto);
         boolean userExists = userRepository.existsByUsername(user.getUsername());
         if (userExists)
             throw new RuntimeException("Sign up failed! User already exists.");
         BCryptPasswordEncoder bc = new BCryptPasswordEncoder();
         user.setPassword(bc.encode(user.getPassword()));
-        userRepository.save(user);
+        return userRepository.save(user).getUserId();
     }
 
     public ValidateUserResponse isValidUser(ValidateUserRequest userDto) {
