@@ -9,6 +9,8 @@ import com.example.postmicroservice.entities.Post;
 import com.example.postmicroservice.feignclient.UserClient;
 import com.example.postmicroservice.repositories.CommentRepository;
 import com.example.postmicroservice.repositories.PostRepository;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,8 @@ public class PostService {
         this.userClient = userClient;
     }
 
+    @CircuitBreaker(name = "default", fallbackMethod = "createPostFallback")
+    @Retry(name = "default")
     public int createPost(NewPostRequest postDto) {
         ValidateUserResponse validation = this.validateUser(postDto.getUsername(), postDto.getPassword());
         if (!validation.isValid())
@@ -42,6 +46,8 @@ public class PostService {
         return postRepository.save(newPost).getPostId();
     }
 
+    @CircuitBreaker(name = "default", fallbackMethod = "createCommentFallback")
+    @Retry(name = "default")
     public int createComment(NewCommentRequest commentDto) {
         Post post = postRepository.findById(commentDto.getPostId()).orElse(null);
         if (post == null)
@@ -59,6 +65,8 @@ public class PostService {
         return post.getPostId();
     }
 
+    @CircuitBreaker(name = "default", fallbackMethod = "deletePostFallback")
+    @Retry(name = "default")
     @Transactional
     public void deletePost(DeletePostRequest postDto) {
         Post post = postRepository.findById(postDto.getPostId()).orElse(null);
@@ -73,6 +81,8 @@ public class PostService {
         postRepository.delete(post);
     }
 
+    @CircuitBreaker(name = "default", fallbackMethod = "deleteCommentFallback")
+    @Retry(name = "default")
     @Transactional
     public void deleteComment(DeleteCommentRequest commentDto) {
         Comment comment = commentRepository.findById(commentDto.getCommentId()).orElse(null);
@@ -86,6 +96,8 @@ public class PostService {
         commentRepository.delete(comment);
     }
 
+    @CircuitBreaker(name = "default", fallbackMethod = "getAllPostsFallback")
+    @Retry(name = "default")
     public List<PostInfoResponse> getAllPosts() {
         List<Post> posts = postRepository.findAll();
         List<PostInfoResponse> result = new ArrayList<>();
@@ -104,6 +116,8 @@ public class PostService {
         return result;
     }
 
+    @CircuitBreaker(name = "default", fallbackMethod = "getCommentsForPostFallback")
+    @Retry(name = "default")
     public List<CommentInfoResponse> getCommentsForPost(int postId) {
         Post post = postRepository.findById(postId).orElse(null);
         if (post == null)
@@ -136,5 +150,29 @@ public class PostService {
             throw new RuntimeException("Operation failed! Couldn't verify if the user credentials are valid.");
 
         return validateResp;
+    }
+
+    public int createPostFallback(NewPostRequest arg, Throwable throwable) {
+        throw new RuntimeException("createPost fallback: " + throwable.getMessage());
+    }
+
+    public int createCommentFallback(NewCommentRequest arg, Throwable throwable) {
+        throw new RuntimeException("createComment fallback: " + throwable.getMessage());
+    }
+
+    public void deletePostFallback(DeletePostRequest arg, Throwable throwable) {
+        throw new RuntimeException("deletePost fallback: " + throwable.getMessage());
+    }
+
+    public void deleteCommentFallback(DeleteCommentRequest arg, Throwable throwable) {
+        throw new RuntimeException("deleteComment fallback: " + throwable.getMessage());
+    }
+
+    public List<PostInfoResponse> getAllPostsFallback(Throwable throwable) {
+        throw new RuntimeException("getAllPosts fallback: " + throwable.getMessage());
+    }
+
+    public List<CommentInfoResponse> getCommentsForPostFallback(int arg, Throwable throwable) {
+        throw new RuntimeException("getCommentsForPost fallback: " + throwable.getMessage());
     }
 }
