@@ -14,6 +14,7 @@ import java.util.List;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 @RestController
+@RequestMapping("/user")
 public class UserController implements UserControllerSwagger {
 
     private final Logger logger;
@@ -40,7 +41,7 @@ public class UserController implements UserControllerSwagger {
         return ResponseEntity.ok().body(response);
     }
 
-    @GetMapping("/isvalid")
+    @PostMapping("/isvalid")
     public ResponseEntity<ValidateUserResponse> isUserValid(
             @RequestBody ValidateUserRequest userData
     ) {

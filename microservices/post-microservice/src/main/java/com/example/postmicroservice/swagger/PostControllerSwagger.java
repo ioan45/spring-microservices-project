@@ -18,7 +18,7 @@ public interface PostControllerSwagger {
             summary = "Create a new post.",
             description = "Create a new post for the given user. The response includes HATEOAS link to view all posts.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", content = { @Content(schema = @Schema(implementation = NewPostResponse.class), mediaType = "text/plain") }),
+            @ApiResponse(responseCode = "200", content = { @Content(schema = @Schema(implementation = NewPostResponse.class), mediaType = "application/json") }),
             @ApiResponse(responseCode = "400", content = { @Content(schema = @Schema(implementation = String.class), mediaType = "text/plain") }) })
     public ResponseEntity<?> newPost(@RequestBody NewPostRequest req);
 
@@ -26,7 +26,7 @@ public interface PostControllerSwagger {
             summary = "Create a new comment for a post.",
             description = "Create a new comment for a given post. The response includes HATEOAS link to view all comments of the given post.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", content = { @Content(schema = @Schema(implementation = NewCommentResponse.class), mediaType = "text/plain") }),
+            @ApiResponse(responseCode = "200", content = { @Content(schema = @Schema(implementation = NewCommentResponse.class), mediaType = "application/json") }),
             @ApiResponse(responseCode = "400", content = { @Content(schema = @Schema(implementation = String.class), mediaType = "text/plain") }) })
     public ResponseEntity<?> newComment(@RequestBody NewCommentRequest req);
 

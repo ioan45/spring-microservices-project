@@ -15,6 +15,7 @@ import java.util.List;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 @RestController
+@RequestMapping("/post")
 public class PostController implements PostControllerSwagger {
     private final Logger logger;
     private final PostService postService;
